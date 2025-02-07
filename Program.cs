@@ -1,4 +1,5 @@
-﻿using Telegram.Bot;
+﻿using System.Threading;
+using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types.Enums;
 
@@ -33,7 +34,7 @@ namespace TelegramBotAPI
                 var botClient = new TelegramBotClient(token);
                 botClient.StartReceiving(messHandler, receiverOptions, cts.Token);
 
-                var me = await botClient.GetMe();
+                var me = await botClient.GetMe(cts.Token);
                 Console.WriteLine($"{me.FirstName} запущен");
 
                 Console.WriteLine("Нажмите клавишу A для выхода");
@@ -43,8 +44,6 @@ namespace TelegramBotAPI
                     ConsoleKeyInfo keyInfo = Console.ReadKey(true);
                     if (keyInfo.Key == ConsoleKey.A)
                     {
-                        messHandler.OnHandleUpdateStarted -= HandleUpdateStarted;
-                        messHandler.OnHandleUpdateCompleted -= HandleUpdateCompleted;
                         await cts.CancelAsync();
                         break;
                     }
@@ -54,9 +53,14 @@ namespace TelegramBotAPI
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                Console.WriteLine("Ошибка в токене");
+                Console.WriteLine(ex);
+            }
+            finally
+            {
+                messHandler.OnHandleUpdateStarted -= HandleUpdateStarted;
+                messHandler.OnHandleUpdateCompleted -= HandleUpdateCompleted;
             }
         }
     }
