@@ -10,10 +10,12 @@ namespace TelegramBotAPI
         public delegate void MessageHandler(string message);
         public event MessageHandler? OnHandleUpdateStarted;
         public event MessageHandler? OnHandleUpdateCompleted;
-        public async Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, HandleErrorSource source, CancellationToken cancellationToken)
+        CatFactService _catFact;
+        public UpdateHandler()
         {
-
+            _catFact = new CatFactService();
         }
+        public async Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, HandleErrorSource source, CancellationToken cancellationToken) { }
         public async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
             string message = update.Message.Text;
@@ -21,9 +23,15 @@ namespace TelegramBotAPI
             await botClient.SendMessage(update.Message.Chat.Id, "Сообщение успешно принято", cancellationToken: cancellationToken);
             if (message == "/cat")
             {
-                var catFact = new CatFact();
-                var fact = await catFact.GetCatFactAsync(cancellationToken);
-                await botClient.SendMessage(update.Message.Chat.Id, fact, cancellationToken: cancellationToken);
+                try
+                {
+                    var fact = await _catFact.GetCatFactAsync(cancellationToken);
+                    await botClient.SendMessage(update.Message.Chat.Id, fact, cancellationToken: cancellationToken);
+                }
+                catch (CatFactServiceException ex)
+                {
+                    await botClient.SendMessage(update.Message.Chat.Id, ex.Message, cancellationToken: cancellationToken);
+                }
             }
             OnHandleUpdateCompleted?.Invoke(message);
         }

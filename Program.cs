@@ -55,7 +55,7 @@ namespace TelegramBotAPI
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Console.WriteLine(ex.ToString());
             }
             finally
             {
